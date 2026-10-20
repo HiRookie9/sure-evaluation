@@ -60,6 +60,40 @@ def test_tta_atomic_fad_identity():
     assert report.score == 1.25
 
 
+def test_tta_runtime_provider_contract_is_flat(monkeypatch):
+    from sure_eval.evaluation import audio_runtime
+
+    provider = object()
+    monkeypatch.setattr(audio_runtime, "_NodeLocalTTAProvider", lambda *args: provider)
+
+    runtime = audio_runtime.build_tta_runtime(metrics=("fad",), device="cpu")
+
+    assert runtime == {"audioldm_eval": provider}
+
+
+def test_tta_script_uses_default_runtime_provider_contract(monkeypatch, tmp_path):
+    from sure_eval.evaluation import audio_runtime
+    from sure_eval.evaluation.scripts import tta
+
+    def provider(rows, metrics):
+        return {"frechet_audio_distance": 1.5}
+    monkeypatch.setattr(
+        audio_runtime,
+        "build_tta_runtime",
+        lambda **kwargs: {"audioldm_eval": provider},
+    )
+
+    report = tta.run(
+        _samples(),
+        metrics=("fad",),
+        output_dir=str(tmp_path / "tta-out"),
+        device="cpu",
+    )
+
+    assert report.score == 1.5
+    assert (tmp_path / "tta-out" / "report.json").is_file()
+
+
 def test_tta_requires_metric_specific_inputs():
     try:
         evaluate_tta_samples(

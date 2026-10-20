@@ -876,6 +876,8 @@ def _audio_sample_kwargs(
         payload["reference_providers"] = runtime["reference_providers"]
     if "providers" in runtime:
         payload["providers"] = runtime["providers"]
+    elif task == "tta":
+        payload["providers"] = runtime
     return payload
 
 

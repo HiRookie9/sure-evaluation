@@ -233,7 +233,7 @@ def build_tta_runtime(
     metrics: tuple[str, ...] | list[str],
     device: str = "cuda",
     cache_dir: str | Path | None = None,
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, Any]:
     """Build node-local providers for text-to-audio metrics."""
     requested = {str(metric).lower().replace("-", "_") for metric in metrics}
     providers: dict[str, Any] = {}
@@ -254,7 +254,10 @@ def build_tta_runtime(
         providers["audiobox_aesthetics"] = _NodeLocalTTAProvider(
             "scoring/audiobox_aesthetics", device
         )
-    return {"providers": providers}
+    # Keep the runtime contract identical to ``evaluate_tta_samples``: callers
+    # receive the provider mapping directly and can pass it to the task
+    # executor without an additional unwrap step.
+    return providers
 
 
 def _tta_result_summary(node_id: str, result: dict[str, Any]) -> str:
