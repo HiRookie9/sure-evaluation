@@ -42,7 +42,10 @@ def test_tta_model_assets_are_pinned_for_setup_download():
 
 
 def test_tta_clap_declares_compatible_torchvision():
-    import tomllib
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
     from pathlib import Path
 
     from sure_eval.evaluation.nodes.scoring.clap_score import node
